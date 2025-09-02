@@ -6,26 +6,32 @@ export type ProfileDocument = Profile & Document;
 
 @Schema()
 export class Profile {
-  @Prop({ type: Types.ObjectId, ref: User.name, required: true, unique: true })
-  user: Types.ObjectId; // relasi one-to-one ke User
+  @Prop({ type: String, required: true, unique: true })
+  email: string;
 
   @Prop()
-  firstName: string;
+  username: string;
 
   @Prop()
-  lastName: string;
+  name?: string;
+  
+  @Prop()
+  zodiac?: string;
 
   @Prop()
-  zodiac: string;
+  horoscope?: string;
 
   @Prop()
-  horoscope: string;
+  birthday?: Date;
 
   @Prop()
-  birthDate: Date;
+  height?: number;
 
   @Prop()
-  bio: string;
+  weight?: number;
+  
+  @Prop()
+  interests?: string[];
 }
 
 export const ProfileSchema = SchemaFactory.createForClass(Profile);

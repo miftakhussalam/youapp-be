@@ -1,14 +1,14 @@
-import { IsNotEmpty, IsOptional, IsDateString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateProfileDto {
   @IsNotEmpty()
-  user: string; // userId dari User collection
+  email: string;
 
   @IsOptional()
-  firstName?: string;
+  username?: string;
 
   @IsOptional()
-  lastName?: string;
+  name?: string;
 
   @IsOptional()
   zodiac?: string;
@@ -18,8 +18,14 @@ export class CreateProfileDto {
 
   @IsOptional()
   @IsDateString()
-  birthDate?: string;
+  birthday?: string;
 
   @IsOptional()
-  bio?: string;
+  height?: number;
+
+  @IsOptional()
+  weight?: number;
+
+  @IsOptional()
+  interests?: string[];
 }

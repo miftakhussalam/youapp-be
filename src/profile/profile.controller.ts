@@ -1,28 +1,99 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Patch,
+  Delete,
+  Headers,
+  UnauthorizedException,
+  Put,
+  Req,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { ProfileService } from './profile.service';
 import { CreateProfileDto } from './dto/create-profile.dto';
 
-@Controller('profile')
+@Controller('api')
 export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(
+    private readonly profileService: ProfileService,
+    private readonly jwtService: JwtService,
+  ) { }
 
   @Post()
   async create(@Body() createProfileDto: CreateProfileDto) {
     return this.profileService.create(createProfileDto);
   }
 
-  @Get(':userId')
-  async findByUser(@Param('userId') userId: string) {
-    return this.profileService.findByUser(userId);
+  @Get('getProfile')
+  async getProfile(@Headers('x-access-token') token: string) {
+    if (!token) {
+      throw new UnauthorizedException('No access token provided');
+    }
+
+    try {
+      const decoded = this.jwtService.verify(token);
+
+      // ⚡ Best practice: store email in JWT payload (e.g., decoded.email)
+      const email = decoded.email;
+      if (!email) {
+        throw new UnauthorizedException('Invalid token payload');
+      }
+
+      const profile = await this.profileService.findByEmail(email);
+
+      if (!profile) {
+        throw new UnauthorizedException('Profile not found');
+      }
+
+      return {
+        message: "Profile has been f ound successfully",
+        data: profile
+      };
+    } catch (error) {
+      console.error(error);
+      throw new UnauthorizedException('Invalid or expired token');
+    }
   }
 
-  @Patch(':userId')
-  async update(@Param('userId') userId: string, @Body() updateDto: Partial<CreateProfileDto>) {
-    return this.profileService.update(userId, updateDto);
+  @Get('profile/:email')
+  async findByEmail(@Param('email') email: string) {
+    return this.profileService.findByEmail(email);
   }
 
-  @Delete(':userId')
-  async remove(@Param('userId') userId: string) {
-    return this.profileService.remove(userId);
+  @Put('updateProfile')
+  async update(
+    @Headers('x-access-token') token: string,
+    // @Body() updateDto: Partial<CreateProfileDto>,
+    @Body() updateDto: any,
+  ) {
+    if (!token) {
+      throw new UnauthorizedException('No access token provided');
+    }
+
+    try {
+      const decoded = this.jwtService.verify(token);
+      const email = decoded.email;
+      if (!email) {
+        throw new UnauthorizedException('Invalid token payload');
+      }
+
+      const profile = await this.profileService.update(email, updateDto);
+
+      return {
+        message: "Profile updated successfully",
+        data: profile
+      };
+    } catch (error) {
+      console.error(error);
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+  }
+
+  @Delete('profile/:email')
+  async remove(@Param('email') email: string) {
+    return this.profileService.remove(email);
   }
 }
